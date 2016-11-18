@@ -9,8 +9,8 @@ LIC_FILES_CHKSUM = "file://Source/WebCore/LICENSE-LGPL-2.1;md5=a778a33ef338abbaf
 # PACKAGECONFIG_append_pn-harfbuzz = " icu" if you are having problems
 # with the do_configure step and harfbuzz.
 DEPENDS = "zlib enchant libsoup-2.4 curl libxml2 cairo libxslt libidn gnutls \
-           gtk+3 gstreamer1.0 gstreamer1.0-plugins-base flex-native icu \
-           gperf-native perl-native ruby-native sqlite3 \
+           gtk+3 gstreamer1.0 gstreamer1.0-plugins-base  gstreamer1.0-plugins-bad \
+           flex-native icu gperf-native perl-native ruby-native sqlite3 \
            libwebp harfbuzz virtual/libgles2 wayland weston mesa"
 
 
@@ -23,15 +23,15 @@ inherit cmake pkgconfig perlnative pythonnative
 # requires less resources (network bandwidth and disk space) on the build machine.
 #
 # PV is the release or tag version (from https://github.com/WebKitForWayland/webkit/releases)
-PV = "wpe-20160526"
+PV = "wpe-20161101"
 S = "${WORKDIR}/webkit-${PV}/"
 
 SRC_URI = "\
    https://github.com/WebKitForWayland/webkit/archive/${PV}.tar.gz \
 "
 
-SRC_URI[md5sum] = "1c004d643a16562eb4c54fef63365b4f"
-SRC_URI[sha256sum] = "01ceafd5cfb07566e7c110bce4bf7fa9ad3e932939324e046de1d39dd7f10ee5"
+SRC_URI[md5sum] = "1901fc856e39f22f15bec7ac01b9a6ed"
+SRC_URI[sha256sum] = "87c63fc0de2ebaddb9f433128300b540bf1228e1b7f978dbe21919dc9bdd5c8e"
 
 EXTRA_OECMAKE = " \
                  -DPORT=WPE \
@@ -84,6 +84,14 @@ ${bindir} \
 ${libdir}/libWPE.so.* \
 ${libdir}/libWPEWebInspectorResources.so \
 ${libdir}/libWPEWebKit.so.* \
+${libdir}/libWPE-backend.so \
 "
 
 RRECOMMENDS_${PN} += "ca-certificates"
+
+do_install_append () {
+    # Configure MESA as default a unique backend while upstream solves issues
+    # with library naming
+    rm -f ${D}${libdir}/libWPE-backend.so
+    mv ${D}${libdir}/libWPE-mesa.so ${D}${libdir}/libWPE-backend.so
+}
